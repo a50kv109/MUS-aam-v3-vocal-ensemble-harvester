@@ -4,66 +4,110 @@
  * Идентификатор: AAM-V1_ARTSYBASHEV_UA_KHARKIV_AIANALYSIS
  */
 
-export const calculate_delta = (evrid: { function: number, tension: number, density: number, gravity: number }) => {
-  return Number(((evrid.function * evrid.gravity) / (evrid.tension + evrid.density + 0.1)).toFixed(3));
-};
+export interface ComposerCore {
+  id: string;
+  name: string;
+  type: string;
+  version: string;
+  evrid: { function: number; tension: number; density: number; gravity: number };
+  nadi: { ida: string; pingala: string; sushumna: string };
+  acoustic: { freq: number; timbre: string; reverb: string };
+  tdi: number;
+  gravity_mod: number;
+  default_mode: string;
+  color: string;
+  activeColor: string;
+  delta?: number;
+}
 
-export const COMPOSER_CORES: Record<string, any> = {
-  "KUKUZEL": {
-    id: "KUKUZEL", name: "Иоанн Кукузель", type: "Византийская литургия", version: "v1.0",
-    evrid: { function: 0.92, tension: 0.18, density: 0.35, gravity: 0.96 },
-    nadi: { ida: "Визант. Исон", pingala: "Орнаментика", sushumna: "Афон" },
-    acoustic: { freq: 432, timbre: "Соло", reverb: "Монастырь 5.0s" },
-    tdi: 0.18, gravity_mod: 0.96, default_mode: "liturgical",
-    color: "border-amber-600 text-amber-500 bg-amber-950/30", activeColor: "bg-amber-900/60 border-amber-500"
-  },
-  "PALESTRINA": {
-    id: "PALESTRINA", name: "Дж. П. да Палестрина", type: "Католическая полифония", version: "v1.0",
-    evrid: { function: 0.96, tension: 0.12, density: 0.40, gravity: 0.94 },
-    nadi: { ida: "Полифония", pingala: "Чистый голос", sushumna: "Равновесие" },
-    acoustic: { freq: 440, timbre: "Вокал", reverb: "Базилика 6.0s" },
-    tdi: 0.12, gravity_mod: 0.94, default_mode: "liturgical",
-    color: "border-stone-400 text-stone-300 bg-stone-900/30", activeColor: "bg-stone-800/60 border-stone-300"
+function calculate_delta(evrid: { function: number; tension: number; density: number; gravity: number }): number {
+  return Number((evrid.function * 1.618 - evrid.tension * 0.5 + evrid.density * 0.3).toFixed(3));
+}
+
+export const COMPOSER_CORES: Record<string, ComposerCore> = {
+  "RACHMANINOFF": {
+    id: "RACHMANINOFF",
+    name: "С. Рахманінов",
+    type: "Романтичний поліфонічний ситез",
+    version: "v3.0",
+    evrid: { function: 0.95, tension: 0.25, density: 0.60, gravity: 0.95 },
+    nadi: { ida: "Глибокий бас", pingala: "Ангельський сопран", sushumna: "Всеношна" },
+    acoustic: { freq: 432, timbre: "Хорова капела", reverb: "Собор 5.0s" },
+    tdi: 0.15,
+    gravity_mod: 0.95,
+    default_mode: "liturgical",
+    color: "border-amber-500 text-amber-400 bg-amber-950/30",
+    activeColor: "bg-amber-900/60 border-amber-400"
   },
   "ARKHANGELSKY": {
-    id: "ARKHANGELSKY", name: "А. Архангельский", type: "Православное хоровое пение", version: "v1.0",
+    id: "ARKHANGELSKY",
+    name: "А. Архангельский",
+    type: "Православное хоровое пение",
+    version: "v1.0",
     evrid: { function: 0.89, tension: 0.18, density: 0.48, gravity: 0.91 },
     nadi: { ida: "Мягкий бас", pingala: "Лирический напев", sushumna: "Молитва" },
     acoustic: { freq: 432, timbre: "A Cappella Choir", reverb: "Храм 4.0s" },
-    tdi: 0.18, gravity_mod: 0.91, default_mode: "liturgical",
-    color: "border-sky-500 text-sky-400 bg-sky-950/30", activeColor: "bg-sky-900/60 border-sky-400"
+    tdi: 0.18,
+    gravity_mod: 0.91,
+    default_mode: "liturgical",
+    color: "border-sky-500 text-sky-400 bg-sky-950/30",
+    activeColor: "bg-sky-900/60 border-sky-400"
   },
   "BORTNYANSKY": {
-    id: "BORTNYANSKY", name: "Д. Бортнянский", type: "Хоровой концерт", version: "v1.2",
+    id: "BORTNYANSKY",
+    name: "Д. Бортнянский",
+    type: "Хоровой концерт",
+    version: "v1.2",
     evrid: { function: 0.92, tension: 0.12, density: 0.45, gravity: 0.88 },
     nadi: { ida: "Cantus firmus", pingala: "Хорова кантилена", sushumna: "Соборний резонанс" },
     acoustic: { freq: 432, timbre: "Мішаний хор", reverb: "Собор 4.5s" },
-    tdi: 0.12, gravity_mod: 0.88, default_mode: "liturgical",
-    color: "border-emerald-600 text-emerald-500 bg-emerald-950/30", activeColor: "bg-emerald-900/60 border-emerald-500"
+    tdi: 0.12,
+    gravity_mod: 0.88,
+    default_mode: "liturgical",
+    color: "border-emerald-600 text-emerald-500 bg-emerald-950/30",
+    activeColor: "bg-emerald-900/60 border-emerald-500"
   },
   "GRECHANINOV": {
-    id: "GRECHANINOV", name: "А. Гречанинов", type: "Духовная экспрессия", version: "v1.0",
+    id: "GRECHANINOV",
+    name: "А. Гречанинов",
+    type: "Духовная экспрессия",
+    version: "v1.0",
     evrid: { function: 0.88, tension: 0.30, density: 0.50, gravity: 0.92 },
     nadi: { ida: "Драматичний бас", pingala: "Експресивний розспів", sushumna: "Катарсис" },
     acoustic: { freq: 432, timbre: "Хор + соло", reverb: "Великий собор" },
-    tdi: 0.30, gravity_mod: 0.92, default_mode: "dramatic",
-    color: "border-rose-700 text-rose-500 bg-rose-950/30", activeColor: "bg-rose-900/60 border-rose-500"
+    tdi: 0.30,
+    gravity_mod: 0.92,
+    default_mode: "dramatic",
+    color: "border-rose-700 text-rose-500 bg-rose-950/30",
+    activeColor: "bg-rose-900/60 border-rose-500"
   },
   "BACH": {
-    id: "BACH", name: "И. С. Бах", type: "Полифония / Протестантский хорал", version: "v2.1",
+    id: "BACH",
+    name: "И. С. Бах",
+    type: "Полифония / Протестантский хорал",
+    version: "v2.1",
     evrid: { function: 0.98, tension: 0.40, density: 0.70, gravity: 0.92 },
     nadi: { ida: "Continuo", pingala: "Тема Фуги", sushumna: "Контрапункт" },
     acoustic: { freq: 256, timbre: "Орган", reverb: "Собор 4.5s" },
-    tdi: 0.12, gravity_mod: 0.92, default_mode: "chamber",
-    color: "border-blue-500 text-blue-400 bg-blue-950/30", activeColor: "bg-blue-900/60 border-blue-400"
+    tdi: 0.12,
+    gravity_mod: 0.92,
+    default_mode: "chamber",
+    color: "border-blue-500 text-blue-400 bg-blue-950/30",
+    activeColor: "bg-blue-900/60 border-blue-400"
   },
   "MOZART": {
-    id: "MOZART", name: "В. А. Моцарт", type: "Венский классицизм", version: "v3.0",
+    id: "MOZART",
+    name: "В. А. Моцарт",
+    type: "Венский классицизм",
+    version: "v3.0",
     evrid: { function: 0.97, tension: 0.35, density: 0.55, gravity: 0.85 },
     nadi: { ida: "Alberti Bass", pingala: "Мелодия", sushumna: "Ясность" },
     acoustic: { freq: 432, timbre: "Струнные", reverb: "Зал 2.5s" },
-    tdi: 0.08, gravity_mod: 0.85, default_mode: "chamber",
-    color: "border-violet-500 text-violet-400 bg-violet-950/30", activeColor: "bg-violet-900/60 border-violet-400"
+    tdi: 0.08,
+    gravity_mod: 0.85,
+    default_mode: "chamber",
+    color: "border-violet-500 text-violet-400 bg-violet-950/30",
+    activeColor: "bg-violet-900/60 border-violet-400"
   }
 };
 
@@ -88,10 +132,15 @@ export interface SkillSettings {
   rubato: number;
 }
 
-/**
- * Unified calculation function `computeEnsembleResult` used by both App.tsx and generateSkillPassport.
- * Eliminates duplicate metric computations across the codebase.
- */
+export interface EnsembleMetrics {
+  tdi: number;
+  gravity: number;
+  q_resonance: number;
+  delta_peak: number;
+  s_core: number;
+  coherence: number;
+}
+
 export function computeEnsembleResult(
   composerId: string,
   voiceCounts: Record<string, number>,
@@ -119,21 +168,21 @@ export function computeEnsembleResult(
 
   if (activeVoices.length === 0) {
     return {
-      composerId,
-      compData,
       activeVoices,
-      tdi: 0.0,
-      gravity: 0.0,
-      q_resonance: 0.0,
-      delta_peak: 0.0,
-      s_core: 0.0,
-      coherence: 1.0,
-      alyosha_passed: false,
-      ready_for_lyria: false,
-      validation_log: [
+      compData,
+      metrics: {
+        tdi: 0.0,
+        gravity: 0.0,
+        q_resonance: 0.0,
+        delta_peak: 0.0,
+        s_core: 0.0,
+        coherence: 1.0
+      },
+      validationLog: [
         "[ВРАТА АЛЬОШІ] Ансамбль порожній.",
         "[СТАТУС] ДОСТУП ЗАБОРОНЕНО."
-      ]
+      ],
+      passed: false
     };
   }
 
@@ -141,12 +190,12 @@ export function computeEnsembleResult(
   const avgVoiceTdi = voicesTdi.reduce((a, b) => a + b, 0) / voicesTdi.length;
   const voicesGrav = activeVoices.map(v => VOCAL_CORES[v].gravity);
   const avgVoiceGrav = voicesGrav.reduce((a, b) => a + b, 0) / voicesGrav.length;
-  
+
   const hybridTdi = (compData.tdi + avgVoiceTdi) / 2;
   const hybridGravity = Math.min(avgVoiceGrav * compData.gravity_mod, 1.0);
   const qResonance = (hybridGravity * 50) / (hybridTdi + 0.1);
-  const hybridDelta = compData.delta * hybridGravity;
-  
+  const hybridDelta = (compData.delta ?? 0.8) * hybridGravity;
+
   const voicesSacred = activeVoices.map(v => VOCAL_CORES[v].sacredness);
   let sCore = voicesSacred.reduce((a, b) => a + b, 0) / voicesSacred.length;
   if (settings.mode === "liturgical") {
@@ -156,24 +205,24 @@ export function computeEnsembleResult(
   const passed = hybridTdi < 0.45;
 
   return {
-    composerId,
-    compData,
     activeVoices,
-    tdi: Number(hybridTdi.toFixed(3)),
-    gravity: Number(hybridGravity.toFixed(3)),
-    q_resonance: Number(qResonance.toFixed(1)),
-    delta_peak: Number(hybridDelta.toFixed(3)),
-    s_core: Number(sCore.toFixed(3)),
-    coherence: Number((1.0 - hybridTdi).toFixed(2)),
-    alyosha_passed: passed,
-    ready_for_lyria: passed,
-    validation_log: [
+    compData,
+    metrics: {
+      tdi: Number(hybridTdi.toFixed(3)),
+      gravity: Number(hybridGravity.toFixed(3)),
+      q_resonance: Number(qResonance.toFixed(1)),
+      delta_peak: Number(hybridDelta.toFixed(3)),
+      s_core: Number(sCore.toFixed(3)),
+      coherence: Number((1.0 - hybridTdi).toFixed(2))
+    },
+    validationLog: [
       "[ВРАТА АЛЬОШІ] Ініціалізація перевірки...",
       `[TDI-СЕНСОР] Поточний TDI: ${hybridTdi.toFixed(3)}`,
       "[δ-ОПЕРАТОР] Фіксація δ-піка",
       "720° Синхронізація завершена",
       passed ? "[СТАТУС] ДОСТУП ДОЗВОЛЕНО. TDI в межах норми." : "[СТАТУС] ДОСТУП ЗАБОРОНЕНО. Критичний рівень TDI."
-    ]
+    ],
+    passed
   };
 }
 
@@ -182,8 +231,8 @@ export function generateSkillPassport(
   voiceCounts: Record<string, number>,
   settings: SkillSettings
 ) {
-  const res = computeEnsembleResult(composerId, voiceCounts, settings);
-  const compData = res.compData;
+  const result = computeEnsembleResult(composerId, voiceCounts, settings);
+  const compData = result.compData;
 
   return {
     schema_version: "3.0.0",
@@ -192,7 +241,7 @@ export function generateSkillPassport(
     components: {
       composer_core: composerId,
       voice_counts: voiceCounts,
-      voice_list: res.activeVoices
+      voice_list: result.activeVoices
     },
     parameters: {
       mode: settings.mode,
@@ -202,16 +251,9 @@ export function generateSkillPassport(
       reverb: compData.acoustic.reverb,
       frequency: compData.acoustic.freq
     },
-    metrics: {
-      tdi: res.tdi,
-      gravity: res.gravity,
-      q_resonance: res.q_resonance,
-      delta_peak: res.delta_peak,
-      s_core: res.s_core,
-      coherence: res.coherence
-    },
+    metrics: result.metrics,
     signature: "AAM-V1_ARTSYBASHEV_UA_KHARKIV_AIANALYSIS",
-    validation_log: res.validation_log,
-    ready_for_lyria: res.ready_for_lyria
+    validation_log: result.validationLog,
+    ready_for_lyria: result.passed
   };
 }

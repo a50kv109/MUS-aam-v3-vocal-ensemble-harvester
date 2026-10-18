@@ -129,7 +129,7 @@ class VocalSkillGenerator:
         """Додає голосове ядро до ансамблю"""
         if voice_id not in self.vocal_db:
             raise ValueError(f"Голос {voice_id} не знайдено в базі.")
-        if not isinstance(count, int) or count < 0:
+        if not (isinstance(count, int) and not isinstance(count, bool)) or count < 0:
             raise ValueError(f"Invalid count for voice {voice_id}: {count}")
         
         if voice_id in self.ensemble:
@@ -157,7 +157,7 @@ class VocalSkillGenerator:
 
         active_voices = []
         for v_id, count in self.ensemble.items():
-            if not isinstance(count, int) or count < 0:
+            if not (isinstance(count, int) and not isinstance(count, bool)) or count < 0:
                 raise ValueError(f"Invalid count for voice {v_id}: {count}")
             active_voices.extend([v_id] * count)
 
@@ -298,7 +298,7 @@ def validate_passport_strict(passport):
     for v_id, count in counts.items():
         if v_id not in vocal_cores_db:
             raise ValueError(f"Unknown voice ID in counts: {v_id}")
-        if not isinstance(count, int) or count < 0:
+        if not (isinstance(count, int) and not isinstance(count, bool)) or count < 0:
             raise ValueError(f"Invalid voice count for {v_id}: {count}")
         count_map[v_id] = count
         total_count += count

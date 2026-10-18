@@ -3,7 +3,7 @@ import {
   Database, Activity, Download, Box, Cpu, FileJson, 
   ShieldCheck, Zap, Server, Layers, Trash2, Music, Settings2, PlayCircle, Save
 } from 'lucide-react';
-import { COMPOSER_CORES, VOCAL_CORES, generateSkillPassport } from './vocal_harvester';
+import { COMPOSER_CORES, VOCAL_CORES, generateSkillPassport, computeEnsembleResult } from './vocal_harvester';
 
 /**
  * 🎤 VOCAL/HYBRID CORE GENERATOR v1.0 (ПРОЄКТ 3)
@@ -64,46 +64,17 @@ export default function App() {
   };
 
   const metrics = useMemo(() => {
-    const compData = COMPOSER_CORES[selectedComposer];
-    if (!compData) return null;
-
-    const activeVoices: string[] = [];
-    Object.entries(voiceCounts).forEach(([id, count]) => {
-      for (let i = 0; i < (count as number); i++) activeVoices.push(id);
-    });
-
-    if (activeVoices.length === 0) {
-      return { tdi: 0, gravity: 0, q_resonance: 0, delta_peak: 0, s_core: 0, alyosha_passed: false, activeVoices };
+    try {
+      const res = computeEnsembleResult(selectedComposer, voiceCounts, settings);
+      return {
+        ...res.metrics,
+        alyosha_passed: res.passed,
+        activeVoices: res.activeVoices
+      };
+    } catch {
+      return { tdi: 0, gravity: 0, q_resonance: 0, delta_peak: 0, s_core: 0, alyosha_passed: false, activeVoices: [] };
     }
-
-    const voicesTdi = activeVoices.map(v => VOCAL_CORES[v].tdi);
-    const avgVoiceTdi = voicesTdi.reduce((a: number, b: number) => a + b, 0) / voicesTdi.length;
-
-    const voicesGrav = activeVoices.map(v => VOCAL_CORES[v].gravity);
-    const avgVoiceGrav = voicesGrav.reduce((a: number, b: number) => a + b, 0) / voicesGrav.length;
-
-    const hybridTdi = (compData.tdi + avgVoiceTdi) / 2;
-    const hybridGravity = Math.min(avgVoiceGrav * compData.gravity_mod, 1.0);
-    const qResonance = (hybridGravity * 50) / (hybridTdi + 0.1);
-    const hybridDelta = compData.delta * hybridGravity;
-
-    const voicesSacred = activeVoices.map(v => VOCAL_CORES[v].sacredness);
-    let sCore = voicesSacred.reduce((a: number, b: number) => a + b, 0) / voicesSacred.length;
-    
-    if (settings.mode === "liturgical") {
-      sCore = Math.min(sCore * 1.15, 1.0);
-    }
-
-    return {
-      tdi: hybridTdi,
-      gravity: hybridGravity,
-      q_resonance: qResonance,
-      delta_peak: hybridDelta,
-      s_core: sCore,
-      alyosha_passed: hybridTdi < 0.45,
-      activeVoices
-    };
-  }, [selectedComposer, voiceCounts, settings.mode]);
+  }, [selectedComposer, voiceCounts, settings]);
 
   const generateSkill = () => {
     const passport = generateSkillPassport(selectedComposer, voiceCounts, settings);
