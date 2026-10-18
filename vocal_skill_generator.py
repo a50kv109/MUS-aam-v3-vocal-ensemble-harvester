@@ -205,12 +205,18 @@ class VocalSkillGenerator:
             comp_name = self.composer_core["name"].upper()
             skill_name = f"{comp_name}_HYBRID_SKILL_v1.0"
 
+        active_voices = []
+        for v_id, count in self.ensemble.items():
+            active_voices.extend([v_id] * count)
+
         skill_data = {
+            "schema_version": "3.0.0",
             "skill_name": skill_name,
             "type": "musical_generation",
             "components": {
                 "composer_core": self.composer_core["id"],
-                "voice_cores": self.ensemble
+                "voice_counts": self.ensemble,
+                "voice_list": active_voices
             },
             "parameters": {
                 "mode": self.settings["mode"],

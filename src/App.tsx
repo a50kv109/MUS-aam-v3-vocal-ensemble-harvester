@@ -202,11 +202,13 @@ export default function App() {
     }
 
     const skill = {
+      schema_version: "3.0.0",
       skill_name: skillName,
       type: "musical_generation",
       components: {
         composer_core: selectedComposer,
-        voice_cores: metrics.activeVoices
+        voice_counts: voiceCounts,
+        voice_list: metrics.activeVoices
       },
       parameters: {
         mode: settings.mode,
