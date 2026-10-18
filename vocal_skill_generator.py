@@ -7,6 +7,9 @@
 import json
 import math
 
+ALLOWED_FREQUENCIES = [256.0, 432.0, 440.0]
+ALLOWED_MODES = ["liturgical", "dramatic", "chamber"]
+
 # ------------------------------------------------------------------------------
 # 1. БІБЛІОТЕКА ГОЛОСОВИХ ЯДЕР
 # ------------------------------------------------------------------------------
@@ -97,11 +100,14 @@ class VocalSkillGenerator:
     """
     Генератор вокальних/гібридних скілів для музичного рушія (Lyria)
     """
-    def __init__(self):
+    def __init__(self, frequency=432.0):
+        if frequency not in ALLOWED_FREQUENCIES:
+            raise ValueError(f"Invalid frequency {frequency}. Must be one of {ALLOWED_FREQUENCIES}")
+        
         self.signature = "AAM-V1_ARTSYBASHEV_UA_KHARKIV_AIANALYSIS"
         self.phi = 1.618
         self.theta = 0.3678
-        self.v_ref = 432.0  # Вердіївський стрій
+        self.v_ref = frequency
         
         self.vocal_db = vocal_cores_db
         self.composer_core = None
@@ -133,7 +139,10 @@ class VocalSkillGenerator:
 
     def set_parameters(self, mode=None, tempo=None, key=None, rubato=None):
         """Налаштування параметрів генерації"""
-        if mode: self.settings["mode"] = mode
+        if mode: 
+            if mode not in ALLOWED_MODES:
+                raise ValueError(f"Invalid mode {mode}. Must be one of {ALLOWED_MODES}")
+            self.settings["mode"] = mode
         if tempo: self.settings["tempo"] = tempo
         if key: self.settings["key"] = key
         if rubato: self.settings["rubato"] = rubato
@@ -234,11 +243,59 @@ class VocalSkillGenerator:
         
         return skill_data
 
-    def export_json(self, filepath, skill_data):
-        """Експорт скіла у JSON файл"""
-        with open(filepath, 'w', encoding='utf-8') as f:
-            json.dump(skill_data, f, ensure_ascii=False, indent=2)
-        print(f"[ЕКСПОРТ] Скіл збережено: {filepath}")
+
+def validate_passport_strict(passport):
+    """Сувора валідація паспорта за контрактом docs/DATA_CONTRACT.md"""
+    if passport.get("schema_version") != "3.0.0":
+        raise ValueError(f"Invalid schema_version: {passport.get('schema_version')}")
+    if passport.get("type") != "musical_generation":
+        raise ValueError(f"Invalid type: {passport.get('type')}")
+    if not isinstance(passport.get("skill_name"), str):
+        raise ValueError("Missing or invalid skill_name")
+    
+    comp = passport.get("components")
+    if not isinstance(comp, dict):
+        raise ValueError("Missing components")
+    if not isinstance(comp.get("composer_core"), str):
+        raise ValueError("Invalid composer_core")
+    if not isinstance(comp.get("voice_counts"), dict):
+        raise ValueError("Invalid voice_counts")
+    if not isinstance(comp.get("voice_list"), list):
+        raise ValueError("Invalid voice_list")
+
+    params = passport.get("parameters")
+    if not isinstance(params, dict):
+        raise ValueError("Missing parameters")
+    if params.get("mode") not in ALLOWED_MODES:
+        raise ValueError(f"Invalid mode: {params.get('mode')}")
+    if not isinstance(params.get("tempo"), int) or not (40 <= params.get("tempo") <= 200):
+        raise ValueError("Invalid tempo range")
+    if params.get("frequency") not in ALLOWED_FREQUENCIES:
+        raise ValueError(f"Invalid frequency: {params.get('frequency')}")
+
+    m = passport.get("metrics")
+    if not isinstance(m, dict):
+        raise ValueError("Missing metrics")
+    if not (0.0 <= m.get("tdi", -1) <= 1.0):
+        raise ValueError("Invalid tdi range")
+    if not (0.0 <= m.get("gravity", -1) <= 1.0):
+        raise ValueError("Invalid gravity range")
+    if m.get("q_resonance", -1) < 0:
+        raise ValueError("Invalid q_resonance")
+    if not isinstance(m.get("delta_peak"), (int, float)):
+        raise ValueError("Invalid delta_peak")
+    if not (0.0 <= m.get("s_core", -1) <= 1.0):
+        raise ValueError("Invalid s_core range")
+    if not (0.0 <= m.get("coherence", -1) <= 1.0):
+        raise ValueError("Invalid coherence range")
+
+    if passport.get("signature") != "AAM-V1_ARTSYBASHEV_UA_KHARKIV_AIANALYSIS":
+        raise ValueError("Invalid signature")
+    if not isinstance(passport.get("validation_log"), list):
+        raise ValueError("Invalid validation_log")
+    if not isinstance(passport.get("ready_for_lyria"), bool):
+        raise ValueError("Invalid ready_for_lyria boolean")
+    print("✅ Python Passport Strict Validation PASSED.")
 
 
 # ==============================================================================
@@ -246,7 +303,6 @@ class VocalSkillGenerator:
 # ==============================================================================
 if __name__ == "__main__":
     
-    # Імітація даних з Проєкту 2 (Генератор Композиторських Ядер)
     rachmaninoff_core = {
         "id": "rach_v2.0", "name": "Рахманінов", "tdi": 0.21, "gravity_mod": 1.1, "delta": 0.158
     }
@@ -255,7 +311,7 @@ if __name__ == "__main__":
     }
 
     print("--- ГЕНЕРАЦІЯ 1: РАХМАНІНОВ (Літургійний) ---")
-    gen1 = VocalSkillGenerator()
+    gen1 = VocalSkillGenerator(frequency=432.0)
     skill1 = (gen1.load_composer_core(rachmaninoff_core)
                   .add_voice("basso_profundo", 2)
                   .add_voice("bass", 2)
@@ -264,12 +320,12 @@ if __name__ == "__main__":
                   .set_parameters(mode="liturgical", tempo=65, key="C minor")
                   .generate_skill())
                   
+    validate_passport_strict(skill1)
     print(json.dumps(skill1, indent=2, ensure_ascii=False))
-    # gen1.export_json("rachmaninoff_liturgy_skill.json", skill1)
 
 
     print("\n--- ГЕНЕРАЦІЯ 2: ЧАЙКОВСЬКИЙ (Драматичний) ---")
-    gen2 = VocalSkillGenerator()
+    gen2 = VocalSkillGenerator(frequency=432.0)
     skill2 = (gen2.load_composer_core(tchaikovsky_core)
                   .add_voice("basso_profundo", 1)
                   .add_voice("bass", 1)
@@ -281,5 +337,5 @@ if __name__ == "__main__":
                   .set_parameters(mode="dramatic", tempo=112, key="E minor", rubato=0.95)
                   .generate_skill())
                   
+    validate_passport_strict(skill2)
     print(json.dumps(skill2, indent=2, ensure_ascii=False))
-    # gen2.export_json("tchaikovsky_drama_skill.json", skill2)
