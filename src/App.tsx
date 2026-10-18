@@ -3,89 +3,13 @@ import {
   Database, Activity, Download, Box, Cpu, FileJson, 
   ShieldCheck, Zap, Server, Layers, Trash2, Music, Settings2, PlayCircle, Save
 } from 'lucide-react';
+import { COMPOSER_CORES, VOCAL_CORES, generateSkillPassport } from './vocal_harvester';
 
 /**
  * 🎤 VOCAL/HYBRID CORE GENERATOR v1.0 (ПРОЄКТ 3)
  * Архітектор: Арцибашев Андрій Олексійович (Kharkiv, UA)
  * Идентификатор: AAM-V1_ARTSYBASHEV_UA_KHARKIV_AIANALYSIS
  */
-
-const calculate_delta = (evrid: {function: number, tension: number, density: number, gravity: number}) => {
-  return Number(((evrid.function * evrid.gravity) / (evrid.tension + evrid.density + 0.1)).toFixed(3));
-};
-
-export const COMPOSER_CORES: Record<string, any> = {
-  "KUKUZEL": {
-    id: "KUKUZEL", name: "Иоанн Кукузель", type: "Византийская литургия", version: "v1.0",
-    evrid: { function: 0.92, tension: 0.18, density: 0.35, gravity: 0.96 },
-    nadi: { ida: "Визант. Исон", pingala: "Орнаментика", sushumna: "Афон" },
-    acoustic: { freq: 432, timbre: "Соло", reverb: "Монастырь 5.0s" },
-    tdi: 0.18, gravity_mod: 0.96, default_mode: "liturgical",
-    color: "border-amber-600 text-amber-500 bg-amber-950/30", activeColor: "bg-amber-900/60 border-amber-500"
-  },
-  "PALESTRINA": {
-    id: "PALESTRINA", name: "Дж. П. да Палестрина", type: "Католическая полифония", version: "v1.0",
-    evrid: { function: 0.96, tension: 0.12, density: 0.40, gravity: 0.94 },
-    nadi: { ida: "Полифония", pingala: "Чистый голос", sushumna: "Равновесие" },
-    acoustic: { freq: 440, timbre: "Вокал", reverb: "Базилика 6.0s" },
-    tdi: 0.12, gravity_mod: 0.94, default_mode: "liturgical",
-    color: "border-stone-400 text-stone-300 bg-stone-900/30", activeColor: "bg-stone-800/60 border-stone-300"
-  },
-  "ARKHANGELSKY": {
-    id: "ARKHANGELSKY", name: "А. Архангельский", type: "Православное хоровое пение", version: "v1.0",
-    evrid: { function: 0.89, tension: 0.18, density: 0.48, gravity: 0.91 },
-    nadi: { ida: "Мягкий бас", pingala: "Лирический напев", sushumna: "Молитва" },
-    acoustic: { freq: 432, timbre: "A Cappella Choir", reverb: "Храм 4.0s" },
-    tdi: 0.18, gravity_mod: 0.91, default_mode: "liturgical",
-    color: "border-sky-500 text-sky-400 bg-sky-950/30", activeColor: "bg-sky-900/60 border-sky-400"
-  },
-  "BORTNYANSKY": {
-    id: "BORTNYANSKY", name: "Д. Бортнянский", type: "Хоровой концерт", version: "v1.2",
-    evrid: { function: 0.92, tension: 0.12, density: 0.45, gravity: 0.88 },
-    nadi: { ida: "Cantus firmus", pingala: "Хорова кантилена", sushumna: "Соборний резонанс" },
-    acoustic: { freq: 432, timbre: "Мішаний хор", reverb: "Собор 4.5s" },
-    tdi: 0.12, gravity_mod: 0.88, default_mode: "liturgical",
-    color: "border-emerald-600 text-emerald-500 bg-emerald-950/30", activeColor: "bg-emerald-900/60 border-emerald-500"
-  },
-  "GRECHANINOV": {
-    id: "GRECHANINOV", name: "А. Гречанинов", type: "Духовная экспрессия", version: "v1.0",
-    evrid: { function: 0.88, tension: 0.30, density: 0.50, gravity: 0.92 },
-    nadi: { ida: "Драматичний бас", pingala: "Експресивний розспів", sushumna: "Катарсис" },
-    acoustic: { freq: 432, timbre: "Хор + соло", reverb: "Великий собор" },
-    tdi: 0.30, gravity_mod: 0.92, default_mode: "dramatic",
-    color: "border-rose-700 text-rose-500 bg-rose-950/30", activeColor: "bg-rose-900/60 border-rose-500"
-  },
-  "BACH": {
-    id: "BACH", name: "И. С. Бах", type: "Полифония / Протестантский хорал", version: "v2.1",
-    evrid: { function: 0.98, tension: 0.40, density: 0.70, gravity: 0.92 },
-    nadi: { ida: "Continuo", pingala: "Тема Фуги", sushumna: "Контрапункт" },
-    acoustic: { freq: 256, timbre: "Орган", reverb: "Собор 4.5s" },
-    tdi: 0.12, gravity_mod: 0.92, default_mode: "chamber",
-    color: "border-blue-500 text-blue-400 bg-blue-950/30", activeColor: "bg-blue-900/60 border-blue-400"
-  },
-  "MOZART": {
-    id: "MOZART", name: "В. А. Моцарт", type: "Венский классицизм", version: "v3.0",
-    evrid: { function: 0.97, tension: 0.35, density: 0.55, gravity: 0.85 },
-    nadi: { ida: "Alberti Bass", pingala: "Мелодия", sushumna: "Ясность" },
-    acoustic: { freq: 432, timbre: "Струнные", reverb: "Зал 2.5s" },
-    tdi: 0.08, gravity_mod: 0.85, default_mode: "chamber",
-    color: "border-violet-500 text-violet-400 bg-violet-950/30", activeColor: "bg-violet-900/60 border-violet-400"
-  }
-};
-
-Object.values(COMPOSER_CORES).forEach(core => {
-  core.delta = calculate_delta(core.evrid);
-});
-
-export const VOCAL_CORES: Record<string, any> = {
-  "basso_profundo": { id: "basso_profundo", name: "Basso Profundo", range: "C2-C4", gravity: 1.00, tdi: 0.40, guna: "tamas", element: "earth", nadi: "ida", sacredness: 0.95, emotion: "awe/solemnity" },
-  "bass": { id: "bass", name: "Bass", range: "E2-E4", gravity: 0.90, tdi: 0.35, guna: "tamas", element: "earth/water", nadi: "ida", sacredness: 0.85, emotion: "stability/power" },
-  "baritone": { id: "baritone", name: "Baritone", range: "G2-G4", gravity: 0.70, tdi: 0.30, guna: "tamas-rajas", element: "water", nadi: "ida-pingala", sacredness: 0.70, emotion: "warmth/drama" },
-  "tenor": { id: "tenor", name: "Tenor", range: "C3-C5", gravity: 0.60, tdi: 0.30, guna: "rajas", element: "fire", nadi: "pingala", sacredness: 0.75, emotion: "passion/heroism" },
-  "alto": { id: "alto", name: "Alto", range: "F3-F5", gravity: 0.55, tdi: 0.20, guna: "rajas-sattva", element: "air", nadi: "sushumna", sacredness: 0.80, emotion: "depth/sorrow" },
-  "mezzo": { id: "mezzo", name: "Mezzo", range: "A3-A5", gravity: 0.50, tdi: 0.15, guna: "sattva", element: "air/ether", nadi: "sushumna", sacredness: 0.85, emotion: "lyricism/grace" },
-  "soprano": { id: "soprano", name: "Soprano", range: "C4-C6", gravity: 0.40, tdi: 0.15, guna: "sattva", element: "ether", nadi: "sushumna", sacredness: 0.90, emotion: "light/transcendence" }
-};
 
 const MODES = ["liturgical", "dramatic", "chamber"];
 const KEYS = ["C major", "C minor", "D major", "D minor", "E major", "E minor", "F major", "F minor", "G major", "G minor", "A major", "A minor", "B major", "B minor"];
@@ -182,54 +106,8 @@ export default function App() {
   }, [selectedComposer, voiceCounts, settings.mode]);
 
   const generateSkill = () => {
-    if (!metrics) return;
-
-    const compName = COMPOSER_CORES[selectedComposer].name;
-    const skillName = `${compName}_HYBRID_SKILL_v1.0`;
-
-    const passed = metrics.alyosha_passed;
-    const validationLog = metrics.activeVoices.length === 0 ? [
-      "[ВРАТА АЛЬОШІ] Ансамбль порожній.",
-      "[СТАТУС] ДОСТУП ЗАБОРОНЕНО."
-    ] : [
-      "[ВРАТА АЛЬОШІ] Ініціалізація перевірки...",
-      `[TDI-СЕНСОР] Поточний TDI: ${metrics.tdi.toFixed(3)}`,
-      "[δ-ОПЕРАТОР] Фіксація δ-піка",
-      "720° Синхронізація завершена",
-      passed ? "[СТАТУС] ДОСТУП ДОЗВОЛЕНО. TDI в межах норми." : "[СТАТУС] ДОСТУП ЗАБОРОНЕНО. Критичний рівень TDI."
-    ];
-
-    const skill = {
-      schema_version: "3.0.0",
-      skill_name: skillName,
-      type: "musical_generation",
-      components: {
-        composer_core: selectedComposer,
-        voice_counts: voiceCounts,
-        voice_list: metrics.activeVoices
-      },
-      parameters: {
-        mode: settings.mode,
-        tempo: settings.tempo,
-        key: settings.key,
-        rubato: settings.rubato,
-        reverb: COMPOSER_CORES[selectedComposer].acoustic.reverb,
-        frequency: COMPOSER_CORES[selectedComposer].acoustic.freq
-      },
-      metrics: {
-        tdi: Number(metrics.tdi.toFixed(3)),
-        q_resonance: Number(metrics.q_resonance.toFixed(1)),
-        gravity: Number(metrics.gravity.toFixed(3)),
-        delta_peak: Number(metrics.delta_peak.toFixed(3)),
-        s_core: Number(metrics.s_core.toFixed(3)),
-        coherence: Number((1.0 - metrics.tdi).toFixed(2))
-      },
-      signature: "AAM-V1_ARTSYBASHEV_UA_KHARKIV_AIANALYSIS",
-      validation_log: validationLog,
-      ready_for_lyria: passed
-    };
-
-    setGeneratedSkill(skill);
+    const passport = generateSkillPassport(selectedComposer, voiceCounts, settings);
+    setGeneratedSkill(passport);
   };
 
   const downloadSkill = () => {
