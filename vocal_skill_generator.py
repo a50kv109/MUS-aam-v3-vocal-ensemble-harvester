@@ -235,6 +235,10 @@ class VocalSkillGenerator:
         for v_id, count in self.ensemble.items():
             active_voices.extend([v_id] * count)
 
+        reverb = "cathedral"
+        if self.composer_core and "acoustic" in self.composer_core:
+            reverb = self.composer_core["acoustic"].get("reverb", "cathedral")
+
         skill_data = {
             "schema_version": "3.0.0",
             "skill_name": skill_name,
@@ -249,7 +253,7 @@ class VocalSkillGenerator:
                 "tempo": self.settings["tempo"],
                 "key": self.settings["key"],
                 "rubato": self.settings["rubato"],
-                "reverb": "cathedral",
+                "reverb": reverb,
                 "frequency": self.v_ref
             },
             "metrics": metrics,

@@ -182,24 +182,22 @@ export default function App() {
   }, [selectedComposer, voiceCounts, settings.mode]);
 
   const generateSkill = () => {
-    if (!metrics || metrics.activeVoices.length === 0) return;
+    if (!metrics) return;
 
     const compName = COMPOSER_CORES[selectedComposer].name;
     const skillName = `${compName}_HYBRID_SKILL_v1.0`;
 
     const passed = metrics.alyosha_passed;
-    const validationLog = [
+    const validationLog = metrics.activeVoices.length === 0 ? [
+      "[ВРАТА АЛЬОШІ] Ансамбль порожній.",
+      "[СТАТУС] ДОСТУП ЗАБОРОНЕНО."
+    ] : [
       "[ВРАТА АЛЬОШІ] Ініціалізація перевірки...",
       `[TDI-СЕНСОР] Поточний TDI: ${metrics.tdi.toFixed(3)}`,
       "[δ-ОПЕРАТОР] Фіксація δ-піка",
-      "720° Синхронізація завершена"
+      "720° Синхронізація завершена",
+      passed ? "[СТАТУС] ДОСТУП ДОЗВОЛЕНО. TDI в межах норми." : "[СТАТУС] ДОСТУП ЗАБОРОНЕНО. Критичний рівень TDI."
     ];
-    
-    if (passed) {
-      validationLog.push("[СТАТУС] ДОСТУП ДОЗВОЛЕНО. TDI в межах норми.");
-    } else {
-      validationLog.push("[СТАТУС] ДОСТУП ЗАБОРОНЕНО. Критичний рівень TDI.");
-    }
 
     const skill = {
       schema_version: "3.0.0",
@@ -467,7 +465,7 @@ export default function App() {
                   <div className="flex gap-3 mt-auto">
                     <button 
                       onClick={generateSkill}
-                      disabled={!metrics.alyosha_passed}
+                      disabled={!metrics}
                       className="flex-1 py-3 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-800 disabled:text-slate-500 text-white text-[11px] font-black rounded-lg uppercase transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(6,182,212,0.2)] disabled:shadow-none"
                     >
                       <Box size={16} /> Створити Скіл
