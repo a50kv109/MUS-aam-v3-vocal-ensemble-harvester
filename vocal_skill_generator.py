@@ -129,6 +129,8 @@ class VocalSkillGenerator:
         """Додає голосове ядро до ансамблю"""
         if voice_id not in self.vocal_db:
             raise ValueError(f"Голос {voice_id} не знайдено в базі.")
+        if not isinstance(count, int) or count < 0:
+            raise ValueError(f"Invalid count for voice {voice_id}: {count}")
         
         if voice_id in self.ensemble:
             self.ensemble[voice_id] += count
@@ -150,12 +152,24 @@ class VocalSkillGenerator:
 
     def _calculate_metrics(self):
         """Розрахунок гібридних метрик (TDI, Q-резонанс, S-CORE, δ-пік)"""
-        if not self.composer_core or not self.ensemble:
-            raise ValueError("Ядро композитора або ансамбль не задані.")
+        if not self.composer_core:
+            raise ValueError("Ядро композитора не задане.")
 
         active_voices = []
         for v_id, count in self.ensemble.items():
+            if not isinstance(count, int) or count < 0:
+                raise ValueError(f"Invalid count for voice {v_id}: {count}")
             active_voices.extend([v_id] * count)
+
+        if not active_voices:
+            return {
+                "tdi": 0.0,
+                "gravity": 0.0,
+                "q_resonance": 0.0,
+                "delta_peak": 0.0,
+                "s_core": 0.0,
+                "coherence": 1.0
+            }
 
         # Середні показники ансамблю
         voices_tdi = [self.vocal_db[v]["tdi"] for v in active_voices]
@@ -191,6 +205,9 @@ class VocalSkillGenerator:
 
     def check_alyosha_gate(self, metrics):
         """Перевірка Врат Альоші (TDI < 0.45)"""
+        if metrics["tdi"] == 0.0 and not self.ensemble:
+            return False, ["[ВРАТА АЛЬОШІ] Ансамбль порожній.", "[СТАТУС] ДОСТУП ЗАБОРОНЕНО."]
+            
         passed = metrics["tdi"] < 0.45
         log = [
             "[ВРАТА АЛЬОШІ] Ініціалізація перевірки...",
@@ -211,7 +228,7 @@ class VocalSkillGenerator:
         passed, validation_log = self.check_alyosha_gate(metrics)
         
         if not skill_name:
-            comp_name = self.composer_core["name"].upper()
+            comp_name = self.composer_core.get("name", "MASTER").upper()
             skill_name = f"{comp_name}_HYBRID_SKILL_v1.0"
 
         active_voices = []
@@ -243,9 +260,15 @@ class VocalSkillGenerator:
         
         return skill_data
 
+    def export_json(self, filepath, skill_data):
+        """Експорт скіла у JSON файл"""
+        with open(filepath, 'w', encoding='utf-8') as f:
+            json.dump(skill_data, f, ensure_ascii=False, indent=2)
+        print(f"[ЕКСПОРТ] Скіл збережено: {filepath}")
+
 
 def validate_passport_strict(passport):
-    """Сувора валідація паспорта за контрактом docs/DATA_CONTRACT.md"""
+    """Сувора валідація паспорта за контрактом docs/DATA_CONTRACT.md з перевіркою voice_counts та voice_list"""
     if passport.get("schema_version") != "3.0.0":
         raise ValueError(f"Invalid schema_version: {passport.get('schema_version')}")
     if passport.get("type") != "musical_generation":
@@ -258,10 +281,36 @@ def validate_passport_strict(passport):
         raise ValueError("Missing components")
     if not isinstance(comp.get("composer_core"), str):
         raise ValueError("Invalid composer_core")
-    if not isinstance(comp.get("voice_counts"), dict):
+    
+    counts = comp.get("voice_counts")
+    lst = comp.get("voice_list")
+    if not isinstance(counts, dict):
         raise ValueError("Invalid voice_counts")
-    if not isinstance(comp.get("voice_list"), list):
+    if not isinstance(lst, list):
         raise ValueError("Invalid voice_list")
+
+    total_count = 0
+    count_map = {}
+    for v_id, count in counts.items():
+        if v_id not in vocal_cores_db:
+            raise ValueError(f"Unknown voice ID in counts: {v_id}")
+        if not isinstance(count, int) or count < 0:
+            raise ValueError(f"Invalid voice count for {v_id}: {count}")
+        count_map[v_id] = count
+        total_count += count
+
+    if total_count != len(lst):
+        raise ValueError(f"voice_counts sum ({total_count}) does not match voice_list length ({len(lst)})")
+
+    list_map = {}
+    for v in lst:
+        if v not in vocal_cores_db:
+            raise ValueError(f"Invalid voice in voice_list: {v}")
+        list_map[v] = list_map.get(v, 0) + 1
+
+    for v_id, expected_count in count_map.items():
+        if list_map.get(v_id, 0) != expected_count:
+            raise ValueError(f"Mismatch for voice {v_id}: counts says {expected_count}, list has {list_map.get(v_id, 0)}")
 
     params = passport.get("parameters")
     if not isinstance(params, dict):
@@ -299,7 +348,7 @@ def validate_passport_strict(passport):
 
 
 # ==============================================================================
-# 3. ПРИКЛАДИ ВИКОРИСТАННЯ
+# 3. ПРИКЛАДИ ВИКОРИСТАННЯ ТА РЕГРЕССІЙНІ ТЕСТИ
 # ==============================================================================
 if __name__ == "__main__":
     
@@ -309,6 +358,13 @@ if __name__ == "__main__":
     tchaikovsky_core = {
         "id": "tchai_v1.2", "name": "Чайковський", "tdi": 0.27, "gravity_mod": 1.0, "delta": 0.169
     }
+
+    # Test 1: Empty Ensemble Python
+    print("--- ТЕСТ 1: ПОРОЖНІЙ АНСАМБЛЬ ---")
+    gen_empty = VocalSkillGenerator(frequency=432.0)
+    skill_empty = gen_empty.load_composer_core(rachmaninoff_core).generate_skill()
+    validate_passport_strict(skill_empty)
+    assert skill_empty["ready_for_lyria"] is False
 
     print("--- ГЕНЕРАЦІЯ 1: РАХМАНІНОВ (Літургійний) ---")
     gen1 = VocalSkillGenerator(frequency=432.0)
@@ -321,8 +377,6 @@ if __name__ == "__main__":
                   .generate_skill())
                   
     validate_passport_strict(skill1)
-    print(json.dumps(skill1, indent=2, ensure_ascii=False))
-
 
     print("\n--- ГЕНЕРАЦІЯ 2: ЧАЙКОВСЬКИЙ (Драматичний) ---")
     gen2 = VocalSkillGenerator(frequency=432.0)
@@ -338,4 +392,4 @@ if __name__ == "__main__":
                   .generate_skill())
                   
     validate_passport_strict(skill2)
-    print(json.dumps(skill2, indent=2, ensure_ascii=False))
+    print("=== ВСІ PYTHON ТЕСТИ УСПІШНО ПРОЙДЕНІ ===")
