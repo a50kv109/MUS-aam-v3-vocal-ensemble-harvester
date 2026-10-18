@@ -32,9 +32,10 @@ npm run build
 python3 vocal_skill_generator.py
 ```
 
-## Documentation
+## Documentation & AI Agent Protocol
 - [Architecture](docs/ARCHITECTURE.md)
 - [Methodology](docs/METHODOLOGY.md)
 - [Metrics Specification](docs/METRICS.md)
 - [Data Contract](docs/DATA_CONTRACT.md)
 - [Testing Guide](docs/TESTING.md)
+- **[AI Agent Protocol](docs/AGENT_PROTOCOL.md)** — Standardized entrypoint, commands, and contracts for AI agents (Gemini, Claude, ChatGPT, Cursor) interacting with this repository.
